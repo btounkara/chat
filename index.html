@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Super chat</title>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+        
+        <style>
+        	.chat{
+        		margin-top: 20px;
+                max-height: 400px;
+                overflow-y: auto;
+        	}
+
+        	.arrival {
+        		font-style: italic;
+        	}
+    	</style>
+    </head>
+ 
+    <body>
+        <div class="container-fluid">
+            <h1>Super chat !</h1>
+        </div>
+
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="input-group mb-3">
+                      <input id='newMessage' type="text" class="form-control" placeholder="Say something ..." aria-label="Say something ..." aria-describedby="sendMessage">
+                      <div class="input-group-append">
+                        <button id="sendMessage" class="btn btn-outline-dark" type="button">Send</button>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-6 chat">
+                </div>
+            </div>
+        </div>
+
+        <script src="http://code.jquery.com/jquery-3.3.1.js"></script>
+        
+        <script src="/socket.io/socket.io.js"></script>
+
+        <script>
+            $(document).ready(() => {
+            	const url = location.origin + '/chat';
+            	console.log(url);
+
+                // Connection to server
+                const socket = io.connect(url);
+                
+                // Asking the visitor its username ...
+                let username = prompt('What is your username ?') || 'John Doe';
+                document.title = `${username} - ${document.title}`;
+
+                // Sends the event "new_arrival"
+                socket.emit('new_arrival', username);
+
+                // Displays a message to the user
+                socket.on('confirm_connection', (message) => alert(message));
+
+                // Add the message in the chat
+                socket.on('message', (message) => {
+                    const msgBody = `<div class="list-group-item flex-column align-items-start ${username === message.username ? 'active' : '' }">
+                        <div class="d-flex w-100 justify-content-between">
+                          <h4 class="mb-1">${message.username}</h4>
+                        </div>
+                        <p class="mb-1">${message.content}</p>
+                    </div>`;
+                    $('.chat').prepend(msgBody);
+                });
+
+                // Updates the chat with the arrival of a new client
+                socket.on('client_arrival', function(message) {
+                	$('.chat').prepend(`<div class='list-group-item arrival'>${message}</div>`);
+                });
+
+                // Sends the message to the server
+                $('#sendMessage').click(function () {
+                    const $newMessage = $('#newMessage');
+                    const newMessage = $newMessage.val().trim();
+
+                    if(newMessage){
+                        // Send the event to the server
+                    	socket.emit('message', newMessage);
+
+                        // Reinitiate the value in the UI
+                        $newMessage.val('');
+                    } else {
+                        alert('Please say something before sending !');
+                    }
+                });
+
+                // Event triggered when entering key enter
+                $('#newMessage').keypress(function (e) {
+                    const key = e.which;
+                    if(key == 13) {
+                        $('#sendMessage').click();
+                    }
+                });
+
+            });
+        </script>
+    </body>
+</html>
