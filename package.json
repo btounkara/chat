@@ -1,10 +1,11 @@
 {
-  "name": "tp_chat",
+  "name": "chat",
   "version": "1.0.0",
   "description": "Chat",
-  "main": "app.js",
+  "main": "chat",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodejs app.js"
   },
   "author": "Bakary Tounkara",
   "license": "ISC",
